@@ -17,6 +17,16 @@ import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
+//librerias para encriptar
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import javax.swing.JOptionPane;
+import org.apache.commons.codec.binary.Base64;
+
 /**
  *
  * @author Juan Carlos Roca
@@ -197,12 +207,35 @@ public class Principal extends javax.swing.JFrame {
        telefonoCampista.setText("");
        staffCheck.setSelected(false);
     }
+    private String encriptar(String contra){
+       String encriptacion = "";
+       String secretKey = "softwareII";
+        try {
+            MessageDigest md5 = MessageDigest.getInstance("MD5");
+            byte[] llavePassword = md5.digest(secretKey.getBytes("utf-8"));
+            byte[] BytesKey = Arrays.copyOf(llavePassword, 24);
+            SecretKey key = new SecretKeySpec(BytesKey, "DESede");
+            Cipher cifrado = Cipher.getInstance("DESede");
+            cifrado.init(Cipher.ENCRYPT_MODE, key);
+            
+            byte[] plainTextBytes = contra.getBytes("utf-8");
+            byte[] buf = cifrado.doFinal(plainTextBytes);
+            byte[] base64Bytes = Base64.encodeBase64(buf);
+            
+            encriptacion = new String(base64Bytes);
+            
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(null, "Algo salió mal");
+        }
+        
+        return encriptacion;
+    }
     private void insertarUsuario(){
-        String check = null;
-        String md5 = "MD5";
+      String password = encriptar(txtContraseña.getText());
+        
         
         String datos= "INSERT INTO usuarios (correo,contraseña,rol) VALUES('"
-                +txtCorreo.getText()+"','"+txtContraseña.getText()+"','"+txtRol.getSelectedItem().toString()
+                +txtCorreo.getText()+"','"+password+"','"+txtRol.getSelectedItem().toString()
                 +"')";
        Database.ejecutarQuery(datos);
        txtCorreo.setText("");
@@ -1477,7 +1510,7 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu3;
-    private javax.swing.JMenu jMenu4;
+    public javax.swing.JMenu jMenu4;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
